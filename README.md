@@ -1,115 +1,151 @@
-# FairHold — SC6113 Financial DApp starter
+# FairHold - SC6113 Individual Financial DApp
 
-**Important:** This is an educational starter to inspect, adapt, deploy and test yourself. **It has NOT been deployed to Sepolia or tested with MetaMask in this package.** Use *only* test ETH. There are no private keys and no real funds. The professor's GitHub repository was read for context only and was not modified.
+**Course:** SC6113 DApps Development  
+**Network:** Ethereum Sepolia testnet (chain ID `11155111`)  
+**Purpose:** Educational demonstration using **test ETH only**. Not audited or intended for real funds.
 
-## 1. What it does
+## Overview
 
-FairHold is a simple student freelance-payment escrow: a buyer deposits Sepolia ETH into a Solidity smart contract for a designated seller. The buyer can release the payment, or request a refund after an expiry deadline while it is still funded. The contract emits events for transaction history.
+FairHold is a small, buyer-controlled escrow payment DApp for freelance or peer-to-peer services. A buyer deposits Sepolia test ETH for a designated seller. The ETH remains in a Solidity contract until the buyer releases it to the seller or, after the selected deadline, requests a refund. Escrow states and transactions are recorded on-chain.
 
-**Important limitation:** The buyer controls releases and refunds; there is no dispute-resolution mechanism. The seller could perform the work without receiving payment if the buyer waits to refund. This is educational, **not production-ready**, and must not hold real funds.
+**Trust-model limitation:** The contract cannot establish whether the seller completed the work. The buyer has unilateral control over release and can refund after the deadline while the escrow remains funded. No independent dispute resolver exists.
 
-## 2. Folder structure
+## Technologies
 
-- `contracts/FairHoldEscrow.sol`: Solidity smart contract; deploy with Remix
-- `app.py`: Flask application; serves UI, validates escrow input, optionally verifies transactions against an RPC
-- `templates/index.html`: HTML page
-- `static/app.js`: MetaMask + ethers.js interaction, on-chain read/write operations, history
-- `static/styles.css`: styling
-- `config.json`: PUBLIC deployed contract address and deployment block
-- `tests/TEST_PLAN.md`: manually execute test cases and capture screenshots
-- `REPORT_OUTLINE.md`: report planning checklist
+- **Blockchain:** Ethereum Sepolia; Solidity `^0.8.24` (`contracts/FairHoldEscrow.sol`)
+- **Wallet and interactions:** MetaMask, ethers.js v6 (`static/app.js`)
+- **Backend:** Python Flask (`app.py`)
+- **Frontend:** HTML, CSS, JavaScript (`templates/`, `static/`)
+- **Development:** Remix IDE; GitHub Codespaces
+- **History:** Solidity events queried by the browser; no database is used
 
-## 3. Setup for a beginner on macOS
+## Project structure
 
-1. Install **MetaMask** browser extension, **Python 3**, and **VS Code**. Make a dedicated test wallet; never enter a wallet seed phrase in websites, code, ChatGPT, screenshots or GitHub.
-2. Open the `FairHold_SC6113_Starter` folder in VS Code.
-3. In the VS Code Terminal, run:
+```text
+contracts/FairHoldEscrow.sol   Escrow smart contract
+static/app.js                 MetaMask, contract calls and event history
+static/styles.css             Frontend styling
+templates/index.html          User interface
+app.py                        Flask server and validation API
+config.json                   Public contract deployment metadata
+requirements.txt              Python dependencies
+tests/test_backend.py         Automated Flask tests
+tests/TEST_PLAN.md            Manual testing checklist
+screenshots/                  Observed implementation/test screenshots
+README.md                     Setup, architecture and testing
+```
+
+## Contract deployment
+
+The Sepolia contract address recorded during project testing is:
+
+`0xb422a2a6e0c6416141217339ca636c9e7739f96d`
+
+The reported deployment block is `11905977`. **Check this block number and the address against your successful deployment receipt before submission.** These details were recorded during manual setup, not independently fetched for this document.
+
+The frontend should use:
+
+```json
+{
+  "contract_address": "0xb422a2a6e0c6416141217339ca636c9e7739f96d",
+  "deployment_block": 11905977,
+  "chain_id": 11155111
+}
+```
+
+Never put a wallet seed phrase or private key in this file or in the repository.
+
+## Run locally or in GitHub Codespaces
+
+1. Clone/open the repository in Codespaces or VS Code.
+2. In its terminal, run:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-```
-
-4. You can start Flask immediately with:
-
-```bash
 python app.py
 ```
 
-5. Open **http://127.0.0.1:5000** in the same browser where MetaMask is installed. The UI will initially tell you to deploy/configure the contract.
+3. In Codespaces, open port **5000** from the **Ports** panel. Locally, visit `http://127.0.0.1:5000`.
+4. Select Sepolia in MetaMask, connect your buyer account, and ensure it holds **Sepolia test ETH** to pay gas.
+5. Create an escrow for a **different** seller address with a positive amount and a valid future refund deadline.
+6. Once the transaction is mined, verify the new escrow has status **Funded**.
+7. Use **Release to seller** to complete the payment, or create a separate funded escrow and select **Refund buyer** after its deadline.
 
-## 4. Deploy the Solidity contract on Sepolia
+The app's actions must be signed in MetaMask. Do not attempt these steps with real ETH.
 
-1. In MetaMask, enable test networks and select **Ethereum Sepolia** (chain ID `11155111`). Request a small amount of *Sepolia test ETH* from a reputable faucet (e.g. MetaMask Developer faucet); test ETH covers deployments and gas. Never buy it as actual ETH.
-2. Open **https://remix.ethereum.org**. In a NEW Remix workspace, create `FairHoldEscrow.sol` and paste the code from `contracts/FairHoldEscrow.sol`.
-3. Go to **Solidity Compiler**. Select a compatible **0.8.24 or newer 0.8.x** compiler, then compile. Fix any compiler errors before proceeding.
-4. In **Deploy & Run Transactions**, select the browser-wallet environment, sometimes shown as **Browser Extension** or **Injected Provider – MetaMask**, depending on Remix version. Ensure it is connected to Sepolia, *not Ethereum Mainnet*.
-5. Select `FairHoldEscrow`, deploy and approve the transaction in MetaMask. The deployment costs test ETH. Wait for a mined deployment receipt.
-6. Copy the **new contract address** from Remix's deployed contracts panel or the transaction receipt. Also record its **deployment block number** from the receipt/block explorer.
-7. Edit **only your local** `config.json`:
+## Smart contract functions
 
-```json
-{
-  "contract_address": "0xYOUR_ACTUAL_DEPLOYED_CONTRACT_ADDRESS",
-  "deployment_block": 12345678,
-  "chain_id": 11155111
-}
-```
+| Function | Purpose |
+|---|---|
+| `createEscrow(address payable seller, uint64 refundAfter)` | Accepts ETH, validates parameters, creates a funded escrow |
+| `releasePayment(uint256 escrowId)` | Buyer transfers funded escrow's ETH to seller |
+| `refundPayment(uint256 escrowId)` | Buyer reclaims funded escrow after deadline |
+| `getEscrow(uint256 escrowId)` | Returns an escrow's data/state |
+| `getUserEscrows(address participant)` | Lists escrow IDs for buyer or seller |
 
-Replace both example values with actual ones. Do not enter these placeholders literally. Restart Flask if desired (the backend reads this configuration for each request).
+The state machine is **Funded -> Released** or **Funded -> Refunded**, with no further settlement after a terminal state. The contract emits `EscrowCreated`, `EscrowReleased` and `EscrowRefunded` events.
 
-## 5. Run the financial DApp
+## Validation and backend
 
-1. Start Flask via `python app.py` in the virtual environment.
-2. Visit **http://127.0.0.1:5000** (a local server; do not open `index.html` by double-clicking it).
-3. Click **Connect MetaMask** and authorize only your test account on **Sepolia**.
-4. Have **two different test wallet accounts** in MetaMask: Buyer (has Sepolia ETH) and Seller.
-5. Buyer: enter the seller's test address, a small test amount like `0.001`, and a deadline at least 3 minutes in the future. Submit and approve the *payable* escrow transaction.
-6. Wait for confirmation. The escrow should appear as **Funded**, including its contract-held balance. Click **Release to seller**, approve, and confirm it becomes **Released**.
-7. For the refund branch, create a **second escrow** with a near-term future deadline. Once the on-chain deadline has passed, click **Refresh**, then **Refund buyer**. The contract should set the status to **Refunded**.
-8. Switch MetaMask to the Seller wallet to confirm it can **view** an escrow but **cannot release or refund it**.
-9. Observe transaction history with Etherscan links. Capture the screenshots listed in `tests/TEST_PLAN.md`.
+- `GET /`: web UI
+- `GET /api/config`: public contract address, deployment block and Sepolia chain ID
+- `POST /api/validate`: checks seller/buyer addresses, distinct wallets, positive/finite ETH amount, whole-wei precision and refund deadline
+- `GET /api/verify/<tx_hash>`: **optional**, read-only receipt verification through a separately configured Sepolia RPC endpoint
 
-If you see a history-range error, check the exact `deployment_block` value and try refreshing. Some free RPCs limit historical log queries.
+The optional endpoint requires `SEPOLIA_RPC_URL` to be set in the server environment. It was **not demonstrated as fully configured or passing** in the test record. Flask never signs transactions; MetaMask handles transaction authorization, and Solidity enforces settlement rules.
 
-## 6. Optional: enable read-only transaction verification in Flask
+## Testing status
 
-The Flask backend can independently verify that a transaction hash refers to a confirmed successful call to your configured escrow address. It never signs transactions. This feature needs a **Sepolia HTTPS RPC URL** from your own node provider.
+### Observed on Sepolia
 
-```bash
-export SEPOLIA_RPC_URL='https://YOUR_SEPOLIA_RPC_ENDPOINT'
-python app.py
-```
+- MetaMask connected to Sepolia.
+- Escrow #1: 0.001 test ETH funded and then released; UI displayed status **Released** and corresponding events.
+- Escrow #2: 0.001 test ETH funded and then refunded after deadline; UI displayed status **Refunded** and corresponding events.
+- Transaction history showed creation, release and refund with Etherscan links.
+- Manual invalid seller address, zero deposit and expired-deadline input were reported rejected by the web interface.
 
-An RPC URL may contain an API key; never commit it in files or publish it in screenshots. The browser's MetaMask connection works without this optional environment variable, but backend verification will be unavailable until it is set. For a stronger assessment of backend integration, configure it and demonstrate a successful `/api/verify/0x...` response.
+The application UI reported successful transactions. For independently verifiable receipts, use the explorer links generated by the app and check the destination contract, status and transferred value.
 
-Use the endpoint in a browser after receiving a real transaction hash:
+### Automated Python tests
 
-```
-http://127.0.0.1:5000/api/verify/YOUR_TRANSACTION_HASH
-```
-
-The JSON response contains `confirmed`, `success`, `belongs_to_contract`, and `block_number`. Do not claim server-side RPC verification passed if it has not been configured and checked.
-
-## 7. What must be tested
-
-See `tests/TEST_PLAN.md`. At minimum, test: wallet connected, deposit created, release authorized, refund authorized after deadline, refund rejected before deadline, release rejected by seller, duplicate release rejected, zero deposit rejected, invalid address rejected, events and transaction links displayed.
-
-The public Sepolia explorer (for example https://sepolia.etherscan.io/) is independent evidence that blockchain transactions occurred.
-
-## 8. What to submit
-
-According to the SC6113 assignment brief, submit a **5–8 page PDF**, all source files (`.sol`, `.py`, `.html`, `.js`, `.css`), README, and screenshots. The database is optional and this starter does not use one. A recording is not required. Confirm the submission platform's preferred folder/ZIP arrangement with the course instructions.
-
-**Academic integrity:** Learn the critical functions and change/personalize the design, explanations, interface, and tests. Cite external libraries and tutorials in your report as appropriate. Do not claim tests, deployments, or performance you did not actually run.
-
-## 9. Backend unit tests (after installing requirements)
-
-Run this in the project folder:
+Run:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-These are validation and HTTP endpoint tests using Flask's built-in test client; they do **not** replace on-chain Solidity or wallet tests.
+A Codespaces run on 13 October 2026 showed **7 tests passed** (about **0.145 s**), covering valid wei conversion, same-wallet rejection, zero amount, fractional wei, malformed seller address, expired deadline and invalid transaction hash. These test Flask validation, not direct Solidity access controls.
+
+### Not yet tested / demonstrated
+
+- Direct seller-wallet attempt to release or refund someone else's escrow
+- Duplicate release or refund from a settled escrow
+- Contract-level early refund revert through Remix
+- Optional Flask RPC receipt verification
+- Gas/latency benchmarking and smart contract audit
+
+Do not mark these as passed without performing the tests.
+
+## Evidence
+
+The `screenshots/` directory should contain:
+
+- `01-escrow-funded.png`
+- `02-escrow-released.png`
+- `03-escrow-refunded.png`
+- `04-backend-tests.png`
+
+The completed 5-8 page assignment report should be added to the repository (for example `SC6113_FairHold_Final_Report.pdf`) according to the course submission instructions.
+
+## Security, privacy and limitations
+
+The contract validates the escrow state and buyer permissions, uses checks-effects-interactions during transfers and does not hold users' private keys. However, this demonstration has no independent arbitration, seller delivery validation, formal audit, monitoring or production-grade hosting. Blockchain events and wallet addresses are publicly viewable. Testnet gas fees still apply.
+
+## References
+
+- [Solidity documentation](https://docs.soliditylang.org/)
+- [ethers.js documentation](https://docs.ethers.org/v6/)
+- [Flask documentation](https://flask.palletsprojects.com/)
+- [Sepolia Etherscan](https://sepolia.etherscan.io/)
