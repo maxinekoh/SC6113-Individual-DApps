@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FairHold · Student Payment Escrow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="wrapper">
+    <header>
+      <div><div class="eyebrow">SC6113 · Individual Assignment</div><h1>FairHold</h1>
+      <p class="lede">Simple, refundable payment escrow secured by an Ethereum smart contract.</p></div>
+      <div class="wallet">
+        <span class="network">Ethereum Sepolia · TEST ETH ONLY</span>
+        <button id="connect" class="primary">Connect MetaMask</button>
+        <div id="account" class="small" aria-live="polite">No wallet connected</div>
+      </div>
+    </header>
+    <div id="notice" class="notice" role="status" aria-live="polite">Deploy the contract in Remix and configure its address to begin.</div>
+    <div class="columns">
+      <section class="panel" aria-labelledby="create-title">
+        <h2 id="create-title">Create a payment escrow</h2>
+        <p>The wallet that deposits test ETH becomes the buyer. The seller may view the escrow but cannot withdraw it directly.</p>
+        <form id="create-form">
+          <label for="seller">Seller wallet address</label>
+          <input id="seller" type="text" placeholder="0x..." required spellcheck="false" autocomplete="off">
+          <label for="amount">Deposit amount (test ETH)</label>
+          <input id="amount" type="text" inputmode="decimal" placeholder="0.001" required>
+          <label for="deadline">Refund available after</label>
+          <input id="deadline" type="datetime-local" required>
+          <button id="create-button" class="primary" type="submit">Fund escrow via MetaMask</button>
+        </form>
+        <p class="small">Your wallet signs transactions. This website never requests or stores private keys.</p>
+      </section>
+      <section class="panel" aria-labelledby="how-title">
+        <h2 id="how-title">How the contract works</h2>
+        <ol class="steps">
+          <li><strong>Funded:</strong> The buyer deposits ETH into the contract.</li>
+          <li><strong>Released:</strong> The buyer sends the escrowed ETH to the seller.</li>
+          <li><strong>Refunded:</strong> After the deadline, the buyer may retrieve unreleased funds.</li>
+        </ol>
+        <div class="warning"><strong>Educational limitation:</strong> No independent dispute resolution. The buyer controls release, and may refund after the deadline even if work has been performed.</div>
+        <p class="small">Always use Sepolia test ETH, never real ETH.</p>
+      </section>
+    </div>
+    <section class="panel" aria-labelledby="escrows-title">
+      <div class="section-header"><h2 id="escrows-title">Your escrows</h2><button id="refresh" class="secondary">Refresh</button></div>
+      <div id="escrows" class="empty">Connect MetaMask to see escrow balances and states.</div>
+    </section>
+    <section class="panel" aria-labelledby="history-title">
+      <h2 id="history-title">On-chain transaction history</h2>
+      <p class="small">Events are read from the blockchain. Transaction hashes link to Sepolia Etherscan.</p>
+      <div class="table-scroll"><table><thead><tr><th>Action</th><th>Escrow</th><th>Amount</th><th>Transaction</th></tr></thead><tbody id="activity"><tr><td colspan="4">Connect your wallet to load history.</td></tr></tbody></table></div>
+      <p id="history-warning" class="small"></p>
+    </section>
+    <footer>FairHold is a classroom demonstration, not an audited production financial service.</footer>
+  </main>
+  <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
