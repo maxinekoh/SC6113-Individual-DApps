@@ -4,6 +4,17 @@
 **Network:** Ethereum Sepolia testnet (chain ID `11155111`)  
 **Purpose:** Educational demonstration using **test ETH only**. Not audited or intended for real funds.
 
+## Live Application
+
+FairHold is deployed on Render:
+
+https://sc6113-fairhold-maxine.onrender.com/
+
+Network: Ethereum Sepolia (testnet)
+
+The application requires MetaMask to interact
+with the deployed smart contract.
+
 ## Overview
 
 FairHold is a small, buyer-controlled escrow payment DApp for freelance or peer-to-peer services. A buyer deposits Sepolia test ETH for a designated seller. The ETH remains in a Solidity contract until the buyer releases it to the seller or, after the selected deadline, requests a refund. Escrow states and transactions are recorded on-chain.
