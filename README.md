@@ -64,8 +64,6 @@ The frontend should use:
 }
 ```
 
-Never put a wallet seed phrase or private key in this file or in the repository.
-
 ## Run locally or in GitHub Codespaces
 
 1. Clone/open the repository in Codespaces or VS Code.
@@ -148,7 +146,9 @@ The `screenshots/` directory should contain:
 - `03-escrow-refunded.png`
 - `04-backend-tests.png`
 
-The completed 5-8 page assignment report should be added to the repository (for example `SC6113_FairHold_Final_Report.pdf`) according to the course submission instructions.
+## Final Report
+
+[SC6113 FairHold Individual Report](SC6113_FairHold_Individual.pdf)
 
 ## Security, privacy and limitations
 
